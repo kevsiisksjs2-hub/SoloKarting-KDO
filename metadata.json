@@ -1,0 +1,8 @@
+{
+  "name": "Solo Karting - KDO ",
+  "description": "Plataforma integral de gestión y telemetría para Karting.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
