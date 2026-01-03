@@ -2,24 +2,22 @@
 import { GoogleGenAI } from "@google/genai";
 
 export const aiService = {
-  // Common method for single-turn text generation
   async chat(message: string) {
-    // Initializing with the required named parameter and using process.env.API_KEY directly.
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: message
+        contents: [{ role: 'user', parts: [{ text: message }] }]
       });
-      return response.text;
+      return response.text || "Enlace de radio interrumpido.";
     } catch (e) {
       console.error("AI Error:", e);
-      return "Enlace de radio interrumpido.";
+      return "Error en la telemetría de IA.";
     }
   },
 
   async chatMessage(history: any[], message: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
     try {
       const contents = [
         ...history,
@@ -29,7 +27,7 @@ export const aiService = {
         model: 'gemini-3-flash-preview',
         contents
       });
-      return response.text;
+      return response.text || "Sin respuesta del sistema.";
     } catch (e) {
       console.error("AI Error:", e);
       return "Error en el enlace de datos IA.";
