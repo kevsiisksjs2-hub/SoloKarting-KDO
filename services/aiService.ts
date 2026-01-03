@@ -2,14 +2,16 @@
 import { GoogleGenAI } from "@google/genai";
 
 export const aiService = {
-  // Inicialización directa según especificaciones de la guía
+  // Inicialización de la instancia de IA para cada llamada para asegurar el uso de la clave más reciente
   async chat(message: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // Correct initialization: always use new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [{ role: 'user', parts: [{ text: message }] }]
+        contents: message
       });
+      // Extracting text output: use response.text property directly.
       return response.text || "Enlace de radio interrumpido.";
     } catch (e) {
       console.error("AI Error:", e);
@@ -18,20 +20,22 @@ export const aiService = {
   },
 
   async chatMessage(history: any[], message: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // Correct initialization: always use new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
-      // Ajuste de formato para historial
-      const contents = history.map(h => ({
-        role: h.role,
-        parts: h.parts || [{ text: h.text }]
+      const formattedHistory = history.map(h => ({
+        role: h.role === 'model' ? 'model' : 'user',
+        parts: Array.isArray(h.parts) ? h.parts : [{ text: h.text || '' }]
       }));
-      
-      contents.push({ role: 'user', parts: [{ text: message }] });
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents
+        contents: [
+          ...formattedHistory,
+          { role: 'user', parts: [{ text: message }] }
+        ]
       });
+      // Extracting text output: use response.text property directly.
       return response.text || "Sin respuesta del sistema.";
     } catch (e) {
       console.error("AI Error:", e);

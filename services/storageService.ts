@@ -1,19 +1,22 @@
-
 import { INITIAL_PILOTS, INITIAL_CATEGORIES, INITIAL_ASSOCIATIONS, INITIAL_CHAMPIONSHIPS, INITIAL_CIRCUITS } from '../constants.ts';
+import { User } from '../types';
 
 const KEYS = {
   PILOTS: 'sk_pilots',
   AUTH: 'sk_auth',
+  USERS: 'sk_users',
   TRACK_STATE: 'sk_track_state',
   LIVE_TIMING: 'sk_live_timing'
 };
 
-// Set to keep track of subscribers for reactivity
 const subscribers = new Set<() => void>();
 
+const DEFAULT_USERS: User[] = [
+  { id: '1', username: 'admin', role: 'admin', password: 'password' },
+  { id: '2', username: 'Cronomax', role: 'tecnico', password: 'crono' }
+];
+
 export const storageService = {
-  // --- Subscription Mechanism ---
-  // Fix: Added missing subscribe method for reactive updates
   subscribe: (callback: () => void) => {
     subscribers.add(callback);
     return () => {
@@ -21,7 +24,6 @@ export const storageService = {
     };
   },
 
-  // Internal helper to notify all subscribers of changes
   notify: () => {
     subscribers.forEach(callback => callback());
   },
@@ -41,6 +43,21 @@ export const storageService = {
     storageService.notify();
   },
 
+  // --- Users Administration ---
+  getUsers: (): User[] => {
+    try {
+      const data = localStorage.getItem(KEYS.USERS);
+      return data ? JSON.parse(data) : DEFAULT_USERS;
+    } catch {
+      return DEFAULT_USERS;
+    }
+  },
+
+  saveUsers: (users: User[]) => {
+    localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+    storageService.notify();
+  },
+
   // --- Categories ---
   getCategories: () => INITIAL_CATEGORIES,
 
@@ -56,14 +73,7 @@ export const storageService = {
     storageService.notify();
   },
 
-  // Fix: Added missing getUsers method for admin login
-  getUsers: () => [
-    { id: '1', username: 'admin', role: 'admin', password: 'password' },
-    { id: '2', username: 'Cronomax', role: 'tecnico', password: 'crono' }
-  ],
-
   // --- Track State ---
-  // Fix: Added missing track state management methods
   getTrackState: () => localStorage.getItem(KEYS.TRACK_STATE) || 'Verde',
   
   setTrackState: (flag: string) => {
@@ -71,14 +81,10 @@ export const storageService = {
     storageService.notify();
   },
 
-  // --- Static Data Fetchers ---
-  // Fix: Added missing methods to fetch static initial data
   getAssociations: () => INITIAL_ASSOCIATIONS,
   getCircuits: () => INITIAL_CIRCUITS,
   getChampionships: () => INITIAL_CHAMPIONSHIPS,
 
-  // --- Live Timing ---
-  // Fix: Added missing methods for live timing management
   getLiveTiming: () => {
     const data = localStorage.getItem(KEYS.LIVE_TIMING);
     return data ? JSON.parse(data) : { active: false, pilots: {}, flag: 'Roja', sessionTime: 0 };
@@ -89,14 +95,10 @@ export const storageService = {
     storageService.notify();
   },
 
-  // --- Audit & Logging ---
-  // Fix: Added missing addLog method for auditing actions
   addLog: (message: string, type: string) => {
     console.log(`[${type.toUpperCase()}] ${message}`);
   },
 
-  // --- Results & Telemetry ---
-  // Fix: Added missing getResults method for the results page
   getResults: () => {
     return [
       {
@@ -114,7 +116,6 @@ export const storageService = {
     ];
   },
 
-  // Fix: Added missing getTrackInfo method for telemetry page
   getTrackInfo: () => ({
     temp: '24°C',
     trackTemp: '31°C',
