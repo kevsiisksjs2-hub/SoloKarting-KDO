@@ -5,7 +5,7 @@ import { HISTORICAL_RANKINGS } from '../constants';
 import { Category, Status, Pilot } from '../types';
 import { 
   UserPlus, CheckCircle2, Zap, ArrowRight, Stethoscope, 
-  IdCard, Trophy, ShieldCheck, Search, Info, Settings2, BoxSelect,
+  CreditCard, Trophy, ShieldCheck, Search, Info, Settings2, BoxSelect,
   X, AlertTriangle, Hash, Activity
 } from 'lucide-react';
 
