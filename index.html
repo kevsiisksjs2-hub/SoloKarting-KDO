@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solo Karting - Vibe Elite System</title>
+    <title>Solo Karting - KDO Elite System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -44,26 +44,27 @@
           animation: scanline 4s linear infinite;
           pointer-events: none;
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        #app { min-height: 100vh; display: flex; flex-direction: column; }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "lucide": "https://esm.sh/lucide@0.474.0",
-    "@google/genai": "https://esm.sh/@google/genai@0.21.0",
-    "jspdf": "https://esm.sh/jspdf@^3.0.4",
-    "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "jspdf": "https://esm.sh/jspdf@^3.0.4",
+    "jspdf-autotable": "https://esm.sh/jspdf-autotable@^5.0.2",
     "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "jspdf-autotable": "https://esm.sh/jspdf-autotable@^5.0.2"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "vite": "https://esm.sh/vite@^7.3.0"
   }
 }
 </script>
 </head>
 <body class="racing-grid">
     <div id="app"></div>
-    <script type="module" src="index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
