@@ -2,6 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export const aiService = {
+  // Inicialización directa según especificaciones de la guía
   async chat(message: string) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
     try {
@@ -19,10 +20,14 @@ export const aiService = {
   async chatMessage(history: any[], message: string) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
     try {
-      const contents = [
-        ...history,
-        { role: 'user', parts: [{ text: message }] }
-      ];
+      // Ajuste de formato para historial
+      const contents = history.map(h => ({
+        role: h.role,
+        parts: h.parts || [{ text: h.text }]
+      }));
+      
+      contents.push({ role: 'user', parts: [{ text: message }] });
+
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents
