@@ -41,7 +41,6 @@ const AppContent: React.FC = () => {
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <AIChatBot />}
     </div>
   );
 };
