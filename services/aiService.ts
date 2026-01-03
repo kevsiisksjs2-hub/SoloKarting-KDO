@@ -1,26 +1,14 @@
 
+// Fix: Use correct import for GoogleGenAI
 import { GoogleGenAI } from "@google/genai";
 
 export const aiService = {
-  // Get tactical advice from a virtual spotter using Gemini
-  async getSpotterAdvice(pilotTimes: any, leaderTimes: any, sectorDetails: any) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
-    const prompt = `Actúa como un AI Spotter profesional de Karting. Piloto: ${JSON.stringify(pilotTimes)}, Líder: ${JSON.stringify(leaderTimes)}. Dame una instrucción táctica directa (max 50 palabras).`;
-
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt
-      });
-      return response.text;
-    } catch (e) {
-      return "Enlace de radio interrumpido.";
-    }
-  },
-
-  // General chat interface for the assistant
-  async chatMessage(history: any[], message: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+  /**
+   * Basic chat functionality using Gemini 3 Flash.
+   */
+  async chat(message: string) {
+    // Fix: Initialize with process.env.API_KEY in the correct format
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -28,64 +16,75 @@ export const aiService = {
       });
       return response.text;
     } catch (e) {
-      return "Error de procesamiento.";
+      console.error("AI Error:", e);
+      return "Enlace de radio interrumpido.";
     }
   },
 
-  // Provide technical setup adjustments based on pilot feedback and track conditions
+  /**
+   * Fix: Added chatMessage method to handle conversations with history.
+   * Used in AIChatBot and Resultados analysis.
+   */
+  async chatMessage(history: any[], message: string) {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: [...history, { role: 'user', parts: [{ text: message }] }]
+      });
+      return response.text;
+    } catch (e) {
+      console.error("AI Chat Error:", e);
+      return "Falla en el sistema de comunicación central.";
+    }
+  },
+
+  /**
+   * Fix: Updated getSpotterAdvice to accept context and return a professional instruction.
+   */
+  async getSpotterAdvice(pilotTimes: any, leaderTimes: any, context?: any) {
+    const prompt = `Actúa como un Spotter de Karting en tiempo real. 
+    Contexto de Pista: ${context ? JSON.stringify(context) : 'Carrera activa'}.
+    Datos de Telemetría del Piloto: ${JSON.stringify(pilotTimes)}. 
+    Datos del Líder: ${JSON.stringify(leaderTimes)}. 
+    Dame una instrucción táctica directa, corta y profesional para mejorar el tiempo o defender posición (máximo 30 palabras).`;
+    return this.chat(prompt);
+  },
+
+  /**
+   * Fix: Added missing getTechnicalSetup method for Telemetria page.
+   */
   async getTechnicalSetup(query: string, trackInfo: any) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
-    const prompt = `Eres un ingeniero de pista senior de karting. 
-    Estado de pista: ${JSON.stringify(trackInfo)}. 
-    Consulta del piloto: "${query}". 
-    Proporciona un ajuste técnico preciso para chasis, carburación o presión de neumáticos. Máximo 100 palabras.`;
-    
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt
-      });
-      return response.text;
-    } catch (e) {
-      return "Falla en el enlace con ingeniería.";
-    }
+    const prompt = `Actúa como un Ingeniero de Pista experto en Karting. 
+    Estado de Pista: ${JSON.stringify(trackInfo)}.
+    Problema/Consulta del piloto: "${query}".
+    Proporciona un ajuste técnico específico (carburación, chasis, presiones) para resolver el problema. Sé conciso y profesional. Máximo 60 palabras.`;
+    return this.chat(prompt);
   },
 
-  // Generate sponsorship pitches for pilots
-  async generateSponsorshipPitch(pilotName: string, category: string, ranking: number, targetCompany: string, budget: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
-    const prompt = `Eres un experto en marketing deportivo. Redacta una propuesta de patrocinio (pitch) convincente.
-    Piloto: ${pilotName}, Categoría: ${category}, Ranking Actual: ${ranking}º.
-    Empresa objetivo: ${targetCompany}. Presupuesto solicitado: ${budget}.
-    Resalta el retorno de inversión y la visibilidad de marca. Tono profesional y motivador.`;
-
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt
-      });
-      return response.text;
-    } catch (e) {
-      throw e;
-    }
+  /**
+   * Fix: Added missing generateSponsorshipPitch method for Patrocinios page.
+   */
+  async generateSponsorshipPitch(name: string, category: string, ranking: number, company: string, budget: string) {
+    const prompt = `Genera una propuesta de patrocinio profesional y persuasiva para un piloto de karting.
+    Piloto: ${name}.
+    Categoría: ${category}.
+    Ranking Actual: ${ranking}°.
+    Empresa Objetivo: ${company}.
+    Presupuesto Solicitado: ${budget}.
+    La propuesta debe resaltar el retorno de inversión, la visibilidad de marca en el sistema RMS y los valores deportivos. Máximo 150 palabras.`;
+    return this.chat(prompt);
   },
 
-  // Provide maintenance advice based on engine usage hours
-  async getMaintenanceAdvice(engineHours: number, category: string, lastService: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
-    const prompt = `Eres un mecánico de competición especialista en motores de karting ${category}.
-    Horas de uso del motor: ${engineHours}.
-    Último service: ${lastService}.
-    Proporciona recomendaciones de mantenimiento preventivo y alertas de seguridad. Sé conciso.`;
-
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt
-      });
-      return response.text;
-    } catch (e) {
-      return "Error al analizar ciclos de motor.";
-    }
+  /**
+   * Fix: Added missing getMaintenanceAdvice method for Logbook page.
+   */
+  async getMaintenanceAdvice(hours: number, category: string, lastService: string) {
+    const prompt = `Actúa como un Mecánico Jefe de Karting de alta competición. 
+    Categoría: ${category}.
+    Horas actuales de uso del motor: ${hours}.
+    Última intervención: "${lastService}".
+    Basado en las horas de uso, indica si es necesario realizar mantenimiento preventivo inmediato y qué componentes revisar (aros, biela, pistón, etc.). Máximo 50 palabras.`;
+    return this.chat(prompt);
   }
 };

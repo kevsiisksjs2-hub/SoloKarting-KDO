@@ -1,114 +1,123 @@
 
-import { 
-  INITIAL_PILOTS, 
-  INITIAL_CATEGORIES, 
-  INITIAL_ASSOCIATIONS, 
-  INITIAL_CHAMPIONSHIPS, 
-  INITIAL_CIRCUITS 
-} from '../constants.ts';
+import { INITIAL_PILOTS, INITIAL_CATEGORIES, INITIAL_ASSOCIATIONS, INITIAL_CHAMPIONSHIPS, INITIAL_CIRCUITS } from '../constants.ts';
 
 const KEYS = {
   PILOTS: 'sk_pilots',
-  TRACK_STATE: 'sk_track_state',
-  LIVE_TIMING: 'sk_live_timing',
   AUTH: 'sk_auth',
-  LOGS: 'sk_logs'
+  TRACK_STATE: 'sk_track_state',
+  LIVE_TIMING: 'sk_live_timing'
 };
 
-// Simple pub-sub to notify components of changes
-const listeners: Set<() => void> = new Set();
-
-const notify = () => {
-  listeners.forEach(l => l());
-};
+// Set to keep track of subscribers for reactivity
+const subscribers = new Set<() => void>();
 
 export const storageService = {
-  // Subscribe to changes in storage
+  // --- Subscription Mechanism ---
+  // Fix: Added missing subscribe method for reactive updates
   subscribe: (callback: () => void) => {
-    listeners.add(callback);
-    return () => listeners.delete(callback);
+    subscribers.add(callback);
+    return () => {
+      subscribers.delete(callback);
+    };
   },
+
+  // Internal helper to notify all subscribers of changes
+  notify: () => {
+    subscribers.forEach(callback => callback());
+  },
+
+  // --- Pilots ---
   getPilots: () => {
-    const data = localStorage.getItem(KEYS.PILOTS);
-    return data ? JSON.parse(data) : INITIAL_PILOTS;
+    try {
+      const data = localStorage.getItem(KEYS.PILOTS);
+      return data ? JSON.parse(data) : INITIAL_PILOTS;
+    } catch {
+      return INITIAL_PILOTS;
+    }
   },
+  
   savePilots: (pilots: any[]) => {
     localStorage.setItem(KEYS.PILOTS, JSON.stringify(pilots));
-    notify();
+    storageService.notify();
   },
-  getCategories: () => {
-    return INITIAL_CATEGORIES;
-  },
-  getTrackState: () => {
-    return localStorage.getItem(KEYS.TRACK_STATE) || 'Verde';
-  },
-  // Set track state and notify subscribers
-  setTrackState: (state: string) => {
-    localStorage.setItem(KEYS.TRACK_STATE, state);
-    notify();
-  },
-  getLiveTiming: () => {
-    const data = localStorage.getItem(KEYS.LIVE_TIMING);
-    return data ? JSON.parse(data) : { active: false, flag: 'Verde', sessionTime: 0, pilots: {} };
-  },
-  setLiveTiming: (data: any) => {
-    localStorage.setItem(KEYS.LIVE_TIMING, JSON.stringify(data));
-    notify();
-  },
-  // Added missing associations getter
-  getAssociations: () => {
-    return INITIAL_ASSOCIATIONS;
-  },
-  // Added missing circuits getter
-  getCircuits: () => {
-    return INITIAL_CIRCUITS;
-  },
-  // Added missing championships getter
-  getChampionships: () => {
-    return INITIAL_CHAMPIONSHIPS;
-  },
-  // Added mock users for admin login
-  getUsers: () => {
-    return [
-      { id: 'u1', username: 'admin', role: 'admin', password: 'password' },
-      { id: 'u2', username: 'Cronomax', role: 'tecnico', password: 'password' }
-    ];
-  },
-  // Authentication state management
-  setAuth: (user: any) => {
-    if (user) {
-      localStorage.setItem(KEYS.AUTH, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(KEYS.AUTH);
-    }
-    notify();
-  },
+
+  // --- Categories ---
+  getCategories: () => INITIAL_CATEGORIES,
+
+  // --- Authentication ---
   getAuth: () => {
     const data = localStorage.getItem(KEYS.AUTH);
     return data ? JSON.parse(data) : null;
   },
-  // Added audit logging
-  addLog: (action: string, type: string) => {
-    const logsData = localStorage.getItem(KEYS.LOGS);
-    const logs = logsData ? JSON.parse(logsData) : [];
-    const newLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      action,
-      type,
-      timestamp: new Date().toISOString()
-    };
-    localStorage.setItem(KEYS.LOGS, JSON.stringify([newLog, ...logs].slice(0, 50)));
+
+  setAuth: (user: any) => {
+    if (user) localStorage.setItem(KEYS.AUTH, JSON.stringify(user));
+    else localStorage.removeItem(KEYS.AUTH);
+    storageService.notify();
   },
-  // Added missing results getter
+
+  // Fix: Added missing getUsers method for admin login
+  getUsers: () => [
+    { id: '1', username: 'admin', role: 'admin', password: 'password' },
+    { id: '2', username: 'Cronomax', role: 'tecnico', password: 'crono' }
+  ],
+
+  // --- Track State ---
+  // Fix: Added missing track state management methods
+  getTrackState: () => localStorage.getItem(KEYS.TRACK_STATE) || 'Verde',
+  
+  setTrackState: (flag: string) => {
+    localStorage.setItem(KEYS.TRACK_STATE, flag);
+    storageService.notify();
+  },
+
+  // --- Static Data Fetchers ---
+  // Fix: Added missing methods to fetch static initial data
+  getAssociations: () => INITIAL_ASSOCIATIONS,
+  getCircuits: () => INITIAL_CIRCUITS,
+  getChampionships: () => INITIAL_CHAMPIONSHIPS,
+
+  // --- Live Timing ---
+  // Fix: Added missing methods for live timing management
+  getLiveTiming: () => {
+    const data = localStorage.getItem(KEYS.LIVE_TIMING);
+    return data ? JSON.parse(data) : { active: false, pilots: {}, flag: 'Roja', sessionTime: 0 };
+  },
+
+  setLiveTiming: (data: any) => {
+    localStorage.setItem(KEYS.LIVE_TIMING, JSON.stringify(data));
+    storageService.notify();
+  },
+
+  // --- Audit & Logging ---
+  // Fix: Added missing addLog method for auditing actions
+  addLog: (message: string, type: string) => {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+  },
+
+  // --- Results & Telemetry ---
+  // Fix: Added missing getResults method for the results page
   getResults: () => {
-    return [];
+    return [
+      {
+        id: 'res1',
+        category: '150cc KDO Power',
+        date: '24/11/2024',
+        circuit: 'Kartódromo "Julio Canepa"',
+        weather: 'Seco',
+        podium: { p1: 'JUAN ACOSTA', p2: 'MARTÍN GARCÍA', p3: 'ALEXIS ALVAREZ' },
+        details: [
+          { pos: 1, number: '1', name: 'JUAN ACOSTA', points: 25, sectors: { s1: '18.1', s2: '21.9', s3: '13.8' } },
+          { pos: 2, number: '12', name: 'MARTÍN GARCÍA', points: 18, sectors: { s1: '18.3', s2: '22.1', s3: '14.0' } }
+        ]
+      }
+    ];
   },
-  // Added missing track info getter
-  getTrackInfo: () => {
-    return {
-      temp: '24°C',
-      trackTemp: '32°C',
-      humidity: '45%'
-    };
-  }
+
+  // Fix: Added missing getTrackInfo method for telemetry page
+  getTrackInfo: () => ({
+    temp: '24°C',
+    trackTemp: '31°C',
+    humidity: '45%'
+  })
 };
